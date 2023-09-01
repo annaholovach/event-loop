@@ -13,27 +13,26 @@ class AsyncOperationManager {
 }
 
 const manager = new AsyncOperationManager()
-// виклик запускає асинхронну функцію з таймером, яка буде виконана після зазначеного часу, ця функція буде додана до черги
+// This call invokes an asynchronous function with a timer that will be executed after the specified time, and this function is added to the queue.
 manager.simulateAsyncOperation(300)
-// виклик створює мікрозавдання, а мікрозавдання мають більший пріорітет і виконуються майже одразу, отже це повідомлення буде виведено найшвидше
+// This call creates a microtask, and microtasks have higher priority and execute almost immediately, so this message will be printed first.
 process.nextTick(() => {
     console.log('microtask executed immediately')
 })
-// викликається метод scheduleImmediate який містить setImmediate, ця функція буде виконана після виконання всіх мікрозавдань, а так як мікрозавдання всього одне, то ця функція виконається другою
+// The scheduleImmediate method containing setImmediate is called, and this function will be executed after all microtasks. Since there is only one microtask, this function will be executed second.
 manager.scheduleImmediate()
-// отже, поток виконання буде таким: спочатку виконається мікрозавдання process.nextTick, потім функція setImmediate, а потім setTimeout з таймером більшим за 0,
-// але якшо поставити значення таймера 0, то порядок виконання макрозадач зміниться, а саме - функція process.nextTick виконається першо, за нею таймаут з нульовою затримкою, а тільки потім setImmediate
+// Therefore, the execution flow will be as follows: first process.nextTick executes, then the setImmediate function, and finally, setTimeout with a delay greater than 0. However, if you set the timer value to 0, the order of execution of macro tasks will change, specifically, the process.nextTick function will execute first, followed by the zero-delay setTimeout, and only then setImmediate.
 
-//bonus
+// Bonus
 
-// синхронна функція, буде виконанана найпершою
+// Synchronous function, will be executed first.
 console.log('1')
 
-// макрозавдання яке містить в собі мікрозавдання, буде додано до черги задач і виконано після мікрозавдань
+// A macro task containing microtasks is added to the task queue and will be executed after the microtasks.
 setTimeout(() => {
-    // макрозавдання, виконається після всіх вкладених мікрозавдань
+    // A macro task that will execute after all the nested microtasks.
     console.log('setTimeout1')
-    // зкладені в макрозавдання мікрозавдання, будуть виконані по черзі після виконання зовнішніх мікрозавдань
+    // Microtasks nested within the macro task will be executed sequentially after the outer microtasks.
     Promise.resolve().then(() => {
         console.log('promise setTimeout1')
     })
@@ -42,29 +41,29 @@ setTimeout(() => {
     })
 }, 0)
 
-// макрозавдання яке не містить в собі мікрозавдань, виконається останнім
+// A macro task that does not contain microtasks will be executed last.
 setTimeout(() => {
     console.log('setTimeout2')
 }, 0)
 
-// перше мікрозавдання, виконається після виконання синхронного коду
+// The first microtask, which will execute after the synchronous code.
 Promise.resolve().then(() => {
     console.log('promise1')
 })
 
-// друге мікрозавдання, виконається після першого
+// The second microtask, which will execute after the first one.
 Promise.resolve().then(() => {
     console.log('promise2')
 })
 
-// синхронна функція, буде виконанана після інших синхронних функцій
+// Synchronous function, will be executed after other synchronous functions.
 console.log('4')
 
-// якщо запустити цей код разом, тобто першу і другу частину, то порядок виконання буде таким:
-// спочатку виконається весь синхронний код - лог 1 і потім лог 4
-// потім виконається process.nextTick
-// потім виконуються мікрозадачі - проміс1 і проміс2
-// потім виконується 1 макрозадача (лог setTimeout1) і вкладені в неї мікрозадачі - promise setTimeout1 і promise setTimeout2
-// потім знову виконується макрозадача
-// потім виконується функція setImmediate
-// а потім setTimeout з затримкою (метод simulateAsyncOperation класу AsyncOperationManager), але якщо поставити затримку на 0, то цей метод виконається одразу після мікрозадач
+// When you run this code together, the execution order will be as follows:
+// First, all synchronous code is executed - log 1 and then log 4.
+// Then process.nextTick is executed.
+// Then microtasks are executed - promise1 and promise2.
+// Then one macro task is executed (log setTimeout1) and its nested microtasks - promise setTimeout1 and promise setTimeout2.
+// Then another macro task is executed.
+// Then the setImmediate function is executed.
+// Finally, setTimeout with a delay (the simulateAsyncOperation method of the AsyncOperationManager class) will execute, but if you set the delay to 0, this method will execute immediately after the microtasks.
